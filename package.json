@@ -1,6 +1,6 @@
 {
   "name": "dirpin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
   "type": "module",
   "bin": {
