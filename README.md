@@ -7,7 +7,8 @@ Works with **bash**, **zsh**, **PowerShell**, and **cmd**.
 ## Install
 
 ```bash
-npm i -g dpin
+npm i -g dpin-cli
+# command on PATH is still: dpin
 ```
 
 ## Usage
@@ -37,7 +38,7 @@ A Node process cannot `cd` or `source` its parent shell. So dpin installs a **sh
 1. Runs the real CLI
 2. After `add` / `remove` / `init`, re-sources hooks in **this** session
 
-Use the command `dpin` (after `npm i -g dpin`), not `npx dpin`, so the wrapper runs.
+Use the command `dpin` (after `npm i -g dpin-cli`), not `npx dpin-cli`, so the wrapper runs.
 
 **First time in a shell that does not have the wrapper yet** — load once:
 

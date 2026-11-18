@@ -1,5 +1,5 @@
 {
-  "name": "dpin",
+  "name": "dpin-cli",
   "version": "1.0.0",
   "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
   "type": "module",
@@ -39,10 +39,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rkanik/dpin.git"
+    "url": "git+https://github.com/rkanik/dpin-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/rkanik/dpin/issues"
+    "url": "https://github.com/rkanik/dpin-cli/issues"
   },
-  "homepage": "https://github.com/rkanik/dpin#readme"
+  "homepage": "https://github.com/rkanik/dpin-cli#readme"
 }

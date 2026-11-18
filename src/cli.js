@@ -21,6 +21,8 @@ Shells: bash, zsh, PowerShell, cmd
 First add auto-installs hooks. Profile wraps \`dpin\` so add/remove
 reloads pins in the current shell (no restart). One-time load:
   eval "$(dpin shellenv)"
+
+Install: npm i -g dpin-cli
 `;
 
 function main() {

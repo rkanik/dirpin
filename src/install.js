@@ -53,7 +53,7 @@ function ps1Block() {
     `if (Test-Path '${hooks}') { . '${hooks}' }`,
     `function dpin {`,
     `  $__dpinApp = Get-Command dpin -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1`,
-    `  if (-not $__dpinApp) { Write-Error 'dpin not found on PATH (npm i -g dpin)'; return }`,
+    `  if (-not $__dpinApp) { Write-Error 'dpin not found on PATH (npm i -g dpin-cli)'; return }`,
     `  $env:DPIN_SHELL = '1'`,
     `  & $__dpinApp.Source @args`,
     `  $__dpinCode = $LASTEXITCODE`,
@@ -326,12 +326,12 @@ export function reloadHint() {
     return (
       "Load pins in THIS shell once:  . $HOME\\.dpin\\hooks.ps1  (PowerShell)  |  " +
       "%USERPROFILE%\\.dpin\\hooks.cmd  (cmd)  |  source ~/.dpin/hooks.sh  (bash). " +
-      "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dpin`)."
+      "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dpin-cli`)."
     );
   }
   return (
     "Load pins in THIS shell once:  eval \"$(dpin shellenv)\"  or  source ~/.dpin/hooks.sh. " +
-    "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dpin`)."
+    "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dpin-cli`)."
   );
 }
 
