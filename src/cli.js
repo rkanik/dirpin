@@ -22,7 +22,7 @@ First add auto-installs hooks. Profile wraps \`dpin\` so add/remove
 reloads pins in the current shell (no restart). One-time load:
   eval "$(dpin shellenv)"
 
-Install: npm i -g dpin-cli
+Install: npm i -g dirpin
 `;
 
 function main() {

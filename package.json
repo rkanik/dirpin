@@ -1,5 +1,5 @@
 {
-  "name": "dpin-cli",
+  "name": "dirpin",
   "version": "1.0.0",
   "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
   "type": "module",
