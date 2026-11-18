@@ -18,8 +18,8 @@ export function cmdInit(args) {
   const { firstInstall, shells: applied } = ensureInstalled({ shells });
   console.log(
     firstInstall
-      ? `Installed dpin hooks (${applied.join(", ")})`
-      : `Updated dpin hooks (${applied.join(", ")})`,
+      ? `Installed dirpin hooks (${applied.join(", ")})`
+      : `Updated dirpin hooks (${applied.join(", ")})`,
   );
   printReloadHint();
 }

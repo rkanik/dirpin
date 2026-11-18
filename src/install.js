@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { ensureDpinDir } from "./store.js";
+import { ensureDirpinDir } from "./store.js";
 import { writeHooks } from "./hooks.js";
 import {
   autorunCmdPath,
@@ -15,8 +15,10 @@ import {
   wrapperCmdPath,
 } from "./paths.js";
 
-const BEGIN = "# >>> dpin >>>";
-const END = "# <<< dpin <<<";
+const BEGIN = "# >>> dirpin >>>";
+const END = "# <<< dirpin <<<";
+const LEGACY_BEGIN = "# >>> dpin >>>";
+const LEGACY_END = "# <<< dpin <<<";
 const AUTORUN_KEY = String.raw`HKCU\Software\Microsoft\Command Processor`;
 
 function home() {
@@ -31,19 +33,19 @@ function cliJsPath() {
 function unixBlock() {
   const wrappers = CLI_NAMES.flatMap((name) => [
     `${name}() {`,
-    `  DPIN_SHELL=1 command ${name} "$@"`,
-    `  local __dpin_r=$?`,
+    `  DIRPIN_SHELL=1 command ${name} "$@"`,
+    `  local __dirpin_r=$?`,
     `  case "$1" in`,
     `    add|remove|rm|init)`,
-    `      [ -f "$HOME/.dpin/hooks.sh" ] && . "$HOME/.dpin/hooks.sh"`,
+    `      [ -f "$HOME/.dirpin/hooks.sh" ] && . "$HOME/.dirpin/hooks.sh"`,
     `      ;;`,
     `  esac`,
-    `  return $__dpin_r`,
+    `  return $__dirpin_r`,
     `}`,
   ]);
   return [
     BEGIN,
-    `[ -f "$HOME/.dpin/hooks.sh" ] && . "$HOME/.dpin/hooks.sh"`,
+    `[ -f "$HOME/.dirpin/hooks.sh" ] && . "$HOME/.dirpin/hooks.sh"`,
     ...wrappers,
     END,
     "",
@@ -54,12 +56,12 @@ function ps1Block() {
   const hooks = hooksPs1Path().replace(/'/g, "''");
   const wrappers = CLI_NAMES.flatMap((name) => [
     `function ${name} {`,
-    `  $__dpinApp = Get-Command ${name} -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1`,
-    `  if (-not $__dpinApp) { Write-Error '${name} not found on PATH (npm i -g dirpin)'; return }`,
-    `  $env:DPIN_SHELL = '1'`,
-    `  & $__dpinApp.Source @args`,
-    `  $__dpinCode = $LASTEXITCODE`,
-    `  Remove-Item Env:DPIN_SHELL -ErrorAction SilentlyContinue`,
+    `  $__dirpinApp = Get-Command ${name} -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1`,
+    `  if (-not $__dirpinApp) { Write-Error '${name} not found on PATH (npm i -g dirpin)'; return }`,
+    `  $env:DIRPIN_SHELL = '1'`,
+    `  & $__dirpinApp.Source @args`,
+    `  $__dirpinCode = $LASTEXITCODE`,
+    `  Remove-Item Env:DIRPIN_SHELL -ErrorAction SilentlyContinue`,
     `  if ($args.Count -ge 1 -and @('add','remove','rm','init') -contains $args[0]) {`,
     `    if (Test-Path '${hooks}') { . '${hooks}' }`,
     `  }`,
@@ -74,8 +76,16 @@ function ps1Block() {
   ].join("\n");
 }
 
-function hasMarker(content) {
-  return content.includes(BEGIN) && content.includes(END);
+function markerPair(content) {
+  for (const [start, end] of [
+    [BEGIN, END],
+    [LEGACY_BEGIN, LEGACY_END],
+  ]) {
+    if (content.includes(start) && content.includes(end)) {
+      return [start, end];
+    }
+  }
+  return null;
 }
 
 function upsertBlock(filePath, block) {
@@ -85,9 +95,11 @@ function upsertBlock(filePath, block) {
     ? fs.readFileSync(filePath, "utf8")
     : "";
 
-  if (hasMarker(content)) {
+  const markers = markerPair(content);
+  if (markers) {
+    const [start, end] = markers;
     const re = new RegExp(
-      `${escapeRegExp(BEGIN)}[\\s\\S]*?${escapeRegExp(END)}\\n?`,
+      `${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}\\n?`,
       "m",
     );
     content = content.replace(re, block.trimEnd() + "\n");
@@ -147,24 +159,24 @@ function patchPowerShell() {
 }
 
 function writeCmdSupport() {
-  ensureDpinDir();
+  ensureDirpinDir();
   fs.mkdirSync(binDir(), { recursive: true });
 
   const cli = cliJsPath();
   const wrapper = [
     "@echo off",
     "setlocal",
-    "set DPIN_SHELL=1",
+    "set DIRPIN_SHELL=1",
     `node "${cli}" %*`,
-    "set \"_dpin_ec=%ERRORLEVEL%\"",
-    'if /I "%~1"=="add" goto :dpin_reload',
-    'if /I "%~1"=="remove" goto :dpin_reload',
-    'if /I "%~1"=="rm" goto :dpin_reload',
-    'if /I "%~1"=="init" goto :dpin_reload',
-    "exit /b %_dpin_ec%",
-    ":dpin_reload",
-    'call "%USERPROFILE%\\.dpin\\hooks.cmd"',
-    "exit /b %_dpin_ec%",
+    "set \"_dirpin_ec=%ERRORLEVEL%\"",
+    'if /I "%~1"=="add" goto :dirpin_reload',
+    'if /I "%~1"=="remove" goto :dirpin_reload',
+    'if /I "%~1"=="rm" goto :dirpin_reload',
+    'if /I "%~1"=="init" goto :dirpin_reload',
+    "exit /b %_dirpin_ec%",
+    ":dirpin_reload",
+    'call "%USERPROFILE%\\.dirpin\\hooks.cmd"',
+    "exit /b %_dirpin_ec%",
     "",
   ].join("\r\n");
   for (const name of CLI_NAMES) {
@@ -173,8 +185,8 @@ function writeCmdSupport() {
 
   const autorun = [
     "@echo off",
-    'set "PATH=%USERPROFILE%\\.dpin\\bin;%PATH%"',
-    'if exist "%USERPROFILE%\\.dpin\\hooks.cmd" call "%USERPROFILE%\\.dpin\\hooks.cmd"',
+    'set "PATH=%USERPROFILE%\\.dirpin\\bin;%PATH%"',
+    'if exist "%USERPROFILE%\\.dirpin\\hooks.cmd" call "%USERPROFILE%\\.dirpin\\hooks.cmd"',
     "",
   ].join("\r\n");
   fs.writeFileSync(autorunCmdPath(), autorun, "utf8");
@@ -214,24 +226,34 @@ function patchCmd() {
 
   if (
     lower.includes(autorun.toLowerCase()) ||
-    lower.includes(".dpin\\autorun.cmd") ||
-    lower.includes(".dpin/autorun.cmd")
+    lower.includes(".dirpin\\autorun.cmd") ||
+    lower.includes(".dirpin/autorun.cmd")
   ) {
+    return;
+  }
+
+  // Migrate ~/.dpin AutoRun → ~/.dirpin
+  if (/\.dpin[/\\]autorun\.cmd/i.test(current)) {
+    const updated = current.replace(
+      /"?[^"&]*\.dpin[/\\]autorun\.cmd"?/gi,
+      quoted,
+    );
+    writeAutoRun(updated);
     return;
   }
 
   // Upgrade old hooks.cmd-only AutoRun
   if (
-    /\.dpin[/\\]hooks\.cmd/i.test(current) &&
+    /\.d(?:ir)?pin[/\\]hooks\.cmd/i.test(current) &&
     !current.includes("&")
   ) {
     writeAutoRun(quoted);
     return;
   }
 
-  if (/\.dpin[/\\]hooks\.cmd/i.test(current)) {
+  if (/\.d(?:ir)?pin[/\\]hooks\.cmd/i.test(current)) {
     const updated = current.replace(
-      /"?[^"&]*\.dpin[/\\]hooks\.cmd"?/gi,
+      /"?[^"&]*\.d(?:ir)?pin[/\\]hooks\.cmd"?/gi,
       quoted,
     );
     writeAutoRun(updated);
@@ -255,7 +277,7 @@ export function loadInstalled() {
 }
 
 function saveInstalled(meta) {
-  ensureDpinDir();
+  ensureDirpinDir();
   fs.writeFileSync(
     installedPath(),
     JSON.stringify(meta, null, 2) + "\n",
@@ -269,7 +291,7 @@ function saveInstalled(meta) {
  * @returns {{ firstInstall: boolean, shells: string[] }}
  */
 export function ensureInstalled(opts = {}) {
-  ensureDpinDir();
+  ensureDirpinDir();
   writeHooks();
 
   const requested = opts.shells?.length
@@ -313,7 +335,7 @@ export function ensureInstalled(opts = {}) {
   return { firstInstall, shells: applied };
 }
 
-/** Source line for bash/zsh — use: eval "$(dpin shellenv)" */
+/** Source line for bash/zsh — use: eval "$(dirpin shellenv)" */
 export function shellenvLine() {
   const sh = hooksShPath().replace(/\\/g, "/");
   return `. "${sh}"`;
@@ -325,22 +347,27 @@ export function shellenvPs1Line() {
 }
 
 /**
- * Hint only when not already inside shell wrapper (DPIN_SHELL=1).
+ * Hint only when not already inside shell wrapper (DIRPIN_SHELL=1).
  * Wrapper re-sources hooks after mutate — no manual reload.
  */
 export function reloadHint() {
-  if (process.env.DPIN_SHELL === "1") return null;
+  if (
+    process.env.DIRPIN_SHELL === "1" ||
+    process.env.DPIN_SHELL === "1"
+  ) {
+    return null;
+  }
 
   if (process.platform === "win32") {
     return (
-      "Load pins in THIS shell once:  . $HOME\\.dpin\\hooks.ps1  (PowerShell)  |  " +
-      "%USERPROFILE%\\.dpin\\hooks.cmd  (cmd)  |  source ~/.dpin/hooks.sh  (bash). " +
-      "Later `dpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
+      "Load pins in THIS shell once:  . $HOME\\.dirpin\\hooks.ps1  (PowerShell)  |  " +
+      "%USERPROFILE%\\.dirpin\\hooks.cmd  (cmd)  |  source ~/.dirpin/hooks.sh  (bash). " +
+      "Later `dirpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
     );
   }
   return (
-    "Load pins in THIS shell once:  eval \"$(dpin shellenv)\"  or  source ~/.dpin/hooks.sh. " +
-    "Later `dpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
+    "Load pins in THIS shell once:  eval \"$(dirpin shellenv)\"  or  source ~/.dirpin/hooks.sh. " +
+    "Later `dirpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
   );
 }
 

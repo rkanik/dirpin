@@ -1,6 +1,6 @@
 {
   "name": "dirpin",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
   "type": "module",
   "bin": {
@@ -15,7 +15,7 @@
     "README.md"
   ],
   "scripts": {
-    "dpin": "node src/cli.js",
+    "dirpin": "node src/cli.js",
     "start": "node src/cli.js",
     "test": "node --check src/cli.js && node src/cli.js help",
     "prepublishOnly": "npm test",

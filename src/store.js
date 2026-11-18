@@ -1,9 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
-import { dpinDir, pinsPath } from "./paths.js";
+import { dirpinDir, legacyDirpinDir, pinsPath } from "./paths.js";
 
-export function ensureDpinDir() {
-  fs.mkdirSync(dpinDir(), { recursive: true });
+/** Ensure `~/.dirpin` exists; rename `~/.dpin` once if present. */
+export function ensureDirpinDir() {
+  const dest = dirpinDir();
+  const legacy = legacyDirpinDir();
+  if (!fs.existsSync(dest) && fs.existsSync(legacy)) {
+    try {
+      fs.renameSync(legacy, dest);
+    } catch {
+      fs.cpSync(legacy, dest, { recursive: true });
+    }
+  }
+  fs.mkdirSync(dest, { recursive: true });
 }
 
 export function loadPins() {
@@ -19,7 +29,7 @@ export function loadPins() {
 }
 
 export function savePins(pins) {
-  ensureDpinDir();
+  ensureDirpinDir();
   const sorted = Object.fromEntries(
     Object.entries(pins).sort(([a], [b]) => a.localeCompare(b)),
   );

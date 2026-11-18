@@ -7,9 +7,9 @@ export function cmdShellenv(args) {
     return;
   }
   if (shell === "cmd") {
-    console.log(`call "%USERPROFILE%\\.dpin\\hooks.cmd"`);
+    console.log(`call "%USERPROFILE%\\.dirpin\\hooks.cmd"`);
     return;
   }
-  // bash / zsh / default — eval "$(dpin shellenv)"
+  // bash / zsh / default — eval "$(dirpin shellenv)"
   console.log(shellenvLine());
 }
