@@ -29,8 +29,11 @@ export function binDir() {
   return path.join(dpinDir(), "bin");
 }
 
-export function wrapperCmdPath() {
-  return path.join(binDir(), "dpin.cmd");
+/** npm bin names (and cmd wrappers under ~/.dpin/bin). */
+export const CLI_NAMES = ["dirpin", "dpin", "dpn"];
+
+export function wrapperCmdPath(name = "dpin") {
+  return path.join(binDir(), `${name}.cmd`);
 }
 
 export function installedPath() {

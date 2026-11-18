@@ -17,8 +17,9 @@ Usage:
   dpin shellenv [bash|powershell|cmd] Print source line for eval
   dpin help                           Show this help
 
+Commands: dirpin, dpin, dpn (same CLI)
 Shells: bash, zsh, PowerShell, cmd
-First add auto-installs hooks. Profile wraps \`dpin\` so add/remove
+First add auto-installs hooks. Profile wraps those commands so add/remove
 reloads pins in the current shell (no restart). One-time load:
   eval "$(dpin shellenv)"
 

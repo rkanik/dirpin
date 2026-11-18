@@ -4,7 +4,9 @@
   "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
   "type": "module",
   "bin": {
-    "dpin": "./src/cli.js"
+    "dirpin": "./src/cli.js",
+    "dpin": "./src/cli.js",
+    "dpn": "./src/cli.js"
   },
   "main": "./src/cli.js",
   "files": [

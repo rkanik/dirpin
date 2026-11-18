@@ -8,6 +8,7 @@ import { writeHooks } from "./hooks.js";
 import {
   autorunCmdPath,
   binDir,
+  CLI_NAMES,
   hooksPs1Path,
   hooksShPath,
   installedPath,
@@ -26,13 +27,11 @@ function cliJsPath() {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "cli.js");
 }
 
-/** Profile block: load pins + wrap `dpin` so mutate cmds re-source in this shell. */
+/** Profile block: load pins + wrap CLI names so mutate cmds re-source in this shell. */
 function unixBlock() {
-  return [
-    BEGIN,
-    `[ -f "$HOME/.dpin/hooks.sh" ] && . "$HOME/.dpin/hooks.sh"`,
-    `dpin() {`,
-    `  DPIN_SHELL=1 command dpin "$@"`,
+  const wrappers = CLI_NAMES.flatMap((name) => [
+    `${name}() {`,
+    `  DPIN_SHELL=1 command ${name} "$@"`,
     `  local __dpin_r=$?`,
     `  case "$1" in`,
     `    add|remove|rm|init)`,
@@ -41,6 +40,11 @@ function unixBlock() {
     `  esac`,
     `  return $__dpin_r`,
     `}`,
+  ]);
+  return [
+    BEGIN,
+    `[ -f "$HOME/.dpin/hooks.sh" ] && . "$HOME/.dpin/hooks.sh"`,
+    ...wrappers,
     END,
     "",
   ].join("\n");
@@ -48,12 +52,10 @@ function unixBlock() {
 
 function ps1Block() {
   const hooks = hooksPs1Path().replace(/'/g, "''");
-  return [
-    BEGIN,
-    `if (Test-Path '${hooks}') { . '${hooks}' }`,
-    `function dpin {`,
-    `  $__dpinApp = Get-Command dpin -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1`,
-    `  if (-not $__dpinApp) { Write-Error 'dpin not found on PATH (npm i -g dirpin)'; return }`,
+  const wrappers = CLI_NAMES.flatMap((name) => [
+    `function ${name} {`,
+    `  $__dpinApp = Get-Command ${name} -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1`,
+    `  if (-not $__dpinApp) { Write-Error '${name} not found on PATH (npm i -g dirpin)'; return }`,
     `  $env:DPIN_SHELL = '1'`,
     `  & $__dpinApp.Source @args`,
     `  $__dpinCode = $LASTEXITCODE`,
@@ -62,6 +64,11 @@ function ps1Block() {
     `    if (Test-Path '${hooks}') { . '${hooks}' }`,
     `  }`,
     `}`,
+  ]);
+  return [
+    BEGIN,
+    `if (Test-Path '${hooks}') { . '${hooks}' }`,
+    ...wrappers,
     END,
     "",
   ].join("\n");
@@ -160,7 +167,9 @@ function writeCmdSupport() {
     "exit /b %_dpin_ec%",
     "",
   ].join("\r\n");
-  fs.writeFileSync(wrapperCmdPath(), wrapper, "utf8");
+  for (const name of CLI_NAMES) {
+    fs.writeFileSync(wrapperCmdPath(name), wrapper, "utf8");
+  }
 
   const autorun = [
     "@echo off",
@@ -326,12 +335,12 @@ export function reloadHint() {
     return (
       "Load pins in THIS shell once:  . $HOME\\.dpin\\hooks.ps1  (PowerShell)  |  " +
       "%USERPROFILE%\\.dpin\\hooks.cmd  (cmd)  |  source ~/.dpin/hooks.sh  (bash). " +
-      "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dirpin`)."
+      "Later `dpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
     );
   }
   return (
     "Load pins in THIS shell once:  eval \"$(dpin shellenv)\"  or  source ~/.dpin/hooks.sh. " +
-    "Later `dpin add/remove` auto-reloads (use `dpin`, not `npx dirpin`)."
+    "Later `dpin add/remove` auto-reloads (use dirpin/dpin/dpn, not `npx dirpin`)."
   );
 }
 

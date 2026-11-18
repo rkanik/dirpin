@@ -1,5 +1,7 @@
 const RESERVED = new Set([
+  "dirpin",
   "dpin",
+  "dpn",
   "cd",
   "ls",
   "dir",

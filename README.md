@@ -8,7 +8,7 @@ Works with **bash**, **zsh**, **PowerShell**, and **cmd**.
 
 ```bash
 npm i -g dirpin
-# command on PATH is still: dpin
+# commands on PATH: dirpin, dpin, dpn
 ```
 
 ## Usage
@@ -29,16 +29,18 @@ dpin path b
 dpin init
 ```
 
+`dirpin` and `dpn` are aliases for the same CLI.
+
 First `dpin add` writes `~/.dpin/` and patches shell profiles (cmd AutoRun on Windows).
 
 ## No restart after add/remove
 
-A Node process cannot `cd` or `source` its parent shell. So dpin installs a **shell wrapper** named `dpin`:
+A Node process cannot `cd` or `source` its parent shell. So dpin installs **shell wrappers** for `dirpin`, `dpin`, and `dpn`:
 
 1. Runs the real CLI
 2. After `add` / `remove` / `init`, re-sources hooks in **this** session
 
-Use the command `dpin` (after `npm i -g dirpin`), not `npx dirpin`, so the wrapper runs.
+Use `dirpin` / `dpin` / `dpn` (after `npm i -g dirpin`), not `npx dirpin`, so the wrapper runs.
 
 **First time in a shell that does not have the wrapper yet** — load once:
 
@@ -52,4 +54,4 @@ After that, further `dpin add` / `remove` update aliases immediately.
 
 ## How it works
 
-Pins live in `~/.dpin/pins.json`. Hook files define shell functions (or `doskey` for cmd). Profile (or cmd `autorun.cmd`) loads them and wraps `dpin` for auto-reload.
+Pins live in `~/.dpin/pins.json`. Hook files define shell functions (or `doskey` for cmd). Profile (or cmd `autorun.cmd`) loads them and wraps `dirpin` / `dpin` / `dpn` for auto-reload.
