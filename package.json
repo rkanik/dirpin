@@ -1,0 +1,48 @@
+{
+  "name": "dpin",
+  "version": "1.0.0",
+  "description": "Pin directories as short shell aliases (bash, zsh, PowerShell, cmd)",
+  "type": "module",
+  "bin": {
+    "dpin": "./src/cli.js"
+  },
+  "main": "./src/cli.js",
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "dpin": "node src/cli.js",
+    "start": "node src/cli.js",
+    "test": "node --check src/cli.js && node src/cli.js help",
+    "prepublishOnly": "npm test",
+    "pack:check": "npm pack --dry-run",
+    "publish:dry": "npm publish --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "cd",
+    "alias",
+    "bookmark",
+    "directory",
+    "cli",
+    "shell",
+    "bash",
+    "zsh",
+    "powershell",
+    "cmd"
+  ],
+  "author": "rkanik",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rkanik/dpin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rkanik/dpin/issues"
+  },
+  "homepage": "https://github.com/rkanik/dpin#readme"
+}
